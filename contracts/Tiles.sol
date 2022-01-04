@@ -6,36 +6,38 @@ import "@jbox/sol/contracts/abstract/JuiceboxProject.sol";
 
 pragma solidity 0.8.6;
 
-contract Tiles is JuiceboxProject, ERC721Enumerable {
+contract OGBANNY is ERC721Enumerable {
     using SafeMath for uint256;
 
-    event Mint(address to, address tileAddress);
+    event Mint(address to, address OGBannyAddress);
     event SetBaseURI(string baseURI);
 
     bool public saleIsActive = false;
 
-    // Limit the total number of reserve Tiles that can be minted by the owner
-    uint256 public mintedReservesLimit = 50;
+    // Limit the total number of reserve OGBANNY that can be minted by the owner
+    uint256 public mintedReservesLimit = 5;
     uint256 public mintedReservesCount = 0;
 
-    // Map Tile addresses to their token ID
+    // Map OGBanny addresses to their token ID
     mapping(address => uint256) public idOfAddress;
 
-    // Map token IDs to Tile addresses
-    mapping(uint256 => address) public tileAddressOf;
+    // Map token IDs to OGBanny addresses
+    mapping(uint256 => address) public OGBannyAddressOf;
 
-    // Base uri used to retrieve Tile token metadata
+    // Base uri used to retrieve OGBanny token metadata
     string public baseURI;
 
     constructor(
         uint256 _projectID,
         ITerminalDirectory _terminalDirectory,
         string memory _baseURI
-    ) JuiceboxProject(_projectID, _terminalDirectory) ERC721("Tiles", "TILES") {
+    ) JuiceboxProject(_projectID, _terminalDirectory) ERC721("OGBANNY", "OGBNY") {
         baseURI = _baseURI;
+    // This is where ETH moves to during purchase.     
+      contract.deploy(<wagmi-project-id>, <terminal-directory-address>) 
     }
 
-    // Get URI used to retrieve metadata for Tile with ID `tokenID`
+    // Get URI used to retrieve metadata for OGBanny with ID `tokenID`
     function tokenURI(uint256 tokenId)
         public
         view
@@ -52,7 +54,7 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
                 ? string(
                     abi.encodePacked(
                         baseURI,
-                        toAsciiString(tileAddressOf[tokenId])
+                        toAsciiString(OGBannyAddressOf[tokenId])
                     ) // Convert address to string before encoding
                 )
                 : "";
@@ -78,84 +80,46 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
         }
     }
 
-    // Calculate the current Tile market price based on current supply
+    // Calculate the current OGBanny market price based on current supply
     function calculatePrice() public view returns (uint256) {
         require(saleIsActive == true, "Sale hasn't started");
 
         uint256 currentSupply = totalSupply();
 
-        if (currentSupply >= 102400) {
-            return 10240000000000000000; // 102,401 - ∞ : 10.24 ETH
-        } else if (currentSupply >= 51200) {
-            return 5120000000000000000; // 51,201 - 102,400 : 5.12 ETH
-        } else if (currentSupply >= 25600) {
-            return 2560000000000000000; // 25,601 - 51,200 : 2.56 ETH
-        } else if (currentSupply >= 12800) {
-            return 1280000000000000000; // 12,801 - 25,600 : 1.28 ETH
-        } else if (currentSupply >= 6400) {
-            return 640000000000000000; // 6,401 - 12,800 : 0.64 ETH
-        } else if (currentSupply >= 3200) {
-            return 320000000000000000; // 3,201 - 6,400 : 0.32 ETH
-        } else if (currentSupply >= 1600) {
-            return 160000000000000000; // 1,601 - 3,200 : 0.16 ETH
-        } else if (currentSupply >= 800) {
-            return 80000000000000000; // 801 - 1600 : 0.08 ETH
-        } else if (currentSupply >= 400) {
-            return 40000000000000000; // 401 - 800 : 0.04 ETH
-        } else if (currentSupply >= 200) {
-            return 20000000000000000; // 201 - 400 : 0.02 ETH
-        } else {
-            return 10000000000000000; // 1 - 200 : 0.01 ETH
+            return 10000000000000000; // 1 - 50 : 0.5 ETH
         }
     }
 
-    // Mint Tile for address `_tileAddress` to `msg.sender`
-    function mintTile(address _tileAddress) external payable returns (uint256) {
+    // Mint OGBanny for address `_OGBannyAddress` to `msg.sender`
+    function mintOGBanny(address _OGBannyAddress) external payable returns (uint256) {
         require(
             msg.value >= calculatePrice(),
             "Ether value sent is below the price"
         );
 
-        // Take fee into TileDAO Juicebox treasury
+        // Take fee into OGBannyDAO Juicebox treasury
         _takeFee(
             msg.value,
             msg.sender,
             string(
                 abi.encodePacked(
-                    "Minted Tile with address ",
-                    toAsciiString(_tileAddress)
+                    "Minted OGBanny with address ",
+                    toAsciiString(_OGBannyAddress)
                 )
             ),
             false
         );
 
-        return _mintTile(msg.sender, _tileAddress);
+        return _mintOGBanny(msg.sender, _OGBannyAddress);
     }
 
-    // If a wallet owner's matching Tile has been minted already, they may collect it from its current owner by paying the owner the current market price.
-    function collectTile() external payable {
-        uint256 tokenId = idOfAddress[msg.sender];
-        require(tokenId != 0, "Tile for sender address has not been minted");
-
-        address owner = ownerOf(tokenId);
-        require(owner != msg.sender, "Sender already owns this Tile");
-        require(
-            msg.value >= calculatePrice(),
-            "Ether value sent is below the price"
-        );
-
-        require(payable(owner).send(msg.value));
-
-        _transfer(owner, msg.sender, tokenId);
-    }
-
-    function _mintTile(address to, address _tileAddress)
+    function _mintOGBanny(address to, address _OGBannyAddress)
         private
         returns (uint256)
     {
         require(
-            idOfAddress[_tileAddress] == 0,
-            "Tile already minted for address"
+            idOfAddress[_OGBannyAddress] == 0,
+            "OGBanny already minted for address"
         );
 
         // Start IDs at 1
@@ -163,12 +127,12 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
 
         _safeMint(to, tokenId);
 
-        // Map Tile address to token ID
-        idOfAddress[_tileAddress] = tokenId;
-        // Map token ID to Tile address
-        tileAddressOf[tokenId] = _tileAddress;
+        // Map OGBanny address to token ID
+        idOfAddress[_OGBannyAddress] = tokenId;
+        // Map token ID to OGBanny address
+        OGBannyAddressOf[tokenId] = _OGBannyAddress;
 
-        emit Mint(to, _tileAddress);
+        emit Mint(to, _OGBannyAddress);
 
         return tokenId;
     }
@@ -192,9 +156,9 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
         emit SetBaseURI(_baseURI);
     }
 
-    // Reserved for promotional giveaways, and rewards to those who helped inspire or enable Tiles.
-    // Owner may mint Tile for `_tileAddress` to `to`
-    function mintReserveTile(address to, address _tileAddress)
+    // Reserved for promotional giveaways, and rewards to those who helped inspire or enable OGBANNY.
+    // Owner may mint OGBanny for `_OGBannyAddress` to `to`
+    function mintReserveOGBanny(address to, address _OGBannyAddress)
         external
         onlyOwner
         returns (uint256)
@@ -206,7 +170,7 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
 
         mintedReservesCount = mintedReservesCount + 1;
 
-        return _mintTile(to, _tileAddress);
+        return _mintOGBanny(to, _OGBannyAddress);
     }
 
     function toAsciiString(address x) internal pure returns (string memory) {
@@ -225,4 +189,5 @@ contract Tiles is JuiceboxProject, ERC721Enumerable {
         if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
         else return bytes1(uint8(b) + 0x57);
     }
+
 }
